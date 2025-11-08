@@ -5,7 +5,7 @@ WindowShock is a simple survival shooter game built in C++ using SFML. Defend ag
 ## Requirements
 
 - C++ compiler (e.g., g++ or Visual Studio)
-- SFML library (version 2.5 or later)
+- SFML library (version 3)
 
 ## How to Run
 
