@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WindowShock Complete Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({ startOnLoad: true, theme: "dark" });
+    </script>
+    <style>
+      :root {
+        --bg-color: #1e1e1e;
+        --text-color: #d4d4d4;
+        --accent-color: #569cd6;
+        --header-bg: #252526;
+        --code-bg: #1e1e1e;
+        --border-color: #3e3e42;
+        --card-bg: #2d2d30;
+        --method-bg: rgba(255, 255, 255, 0.05);
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background-color: var(--header-bg);
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 30px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: var(--accent-color);
+      }
+
+      h1 {
+        text-align: center;
+        margin: 0;
+      }
+
+      .section {
+        background-color: var(--card-bg);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .class-header {
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .method-list {
+        display: grid;
+        gap: 15px;
+      }
+
+      .method {
+        padding: 15px;
+        background-color: var(--method-bg);
+        border-radius: 5px;
+        border-left: 3px solid transparent;
+        transition: border-left-color 0.2s;
+      }
+
+      .method:hover {
+        border-left-color: var(--accent-color);
+      }
+
+      .method-name {
+        font-family: "Consolas", "Courier New", monospace;
+        font-weight: bold;
+        color: #dcdcaa;
+        font-size: 1.1em;
+        margin-bottom: 5px;
+      }
+
+      .method-desc {
+        color: #cccccc;
+        font-size: 0.95em;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        margin-left: 10px;
+        font-weight: normal;
+      }
+
+      .tag-public {
+        background-color: #2e7d32;
+        color: white;
+      }
+      .tag-private {
+        background-color: #c62828;
+        color: white;
+      }
+      .tag-const {
+        background-color: #1565c0;
+        color: white;
+      }
+      .tag-static {
+        background-color: #f57f17;
+        color: black;
+      }
+
+      code {
+        font-family: "Consolas", "Courier New", monospace;
+        background-color: #000;
+        padding: 2px 5px;
+        border-radius: 3px;
+        color: #ce9178;
+      }
+
+      .mermaid {
+        margin: 20px 0;
+        text-align: center;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      .toc {
+        background-color: var(--header-bg);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+      }
+
+      .toc a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 4px;
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .toc a:hover {
+        background-color: var(--accent-color);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1>WindowShock API Documentation</h1>
+        <p style="text-align: center; color: #aaa">
+          Complete reference for all classes and methods
+        </p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="toc">
+        <a href="#FakeWindow">FakeWindow</a>
+        <a href="#Player">Player</a>
+        <a href="#Enemy">Enemy</a>
+        <a href="#Bullet">Bullet</a>
+        <a href="#UIRenderer">UIRenderer</a>
+        <a href="#Upgrade">Upgrade</a>
+        <a href="#GameStats">GameStats</a>
+        <a href="#GameState">GameState</a>
+      </div>
+
+      <!-- FAKE WINDOW CLASS -->
+      <div id="FakeWindow" class="section">
+        <div class="class-header">
+          <h2>Class: FakeWindow</h2>
+          <span class="tag tag-public">Core System</span>
+        </div>
+        <p>
+          Manages the dynamic game arena boundaries, shrinking mechanics, and
+          visual rendering of the "window".
+        </p>
+
+        <h3>Visual Logic: Update Loop</h3>
+        <div class="mermaid">
+          flowchart LR Start(Update) --> IsAnim{Animating?} IsAnim -- Yes -->
+          AnimStep[Progress Animation] AnimStep --> Ease[Apply Cubic Easing]
+          IsAnim -- No --> Shrink[Shrink Boundaries] Shrink --> Smooth[Smooth
+          Move Walls] Ease --> Done Smooth --> Done
+        </div>
+
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              FakeWindow(int sw, int sh, float initialSize)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Constructor. Initializes the window centered on screen with
+              specified size. Sets up coordinate system based on screen
+              width/height.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void resize(float newSize)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Instantly resizes the window to a new square size. Used to reset
+              the game state.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void startCollapseAnimation()
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Initiates the smooth transition animation from the large menu size
+              to the smaller gameplay size. Sets <code>isAnimating</code> to
+              true.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void update(float dt) <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Main update logic. Handles two states:
+              <ul>
+                <li>
+                  <strong>Animating:</strong> Interpolates boundaries using
+                  cubic easing.
+                </li>
+                <li>
+                  <strong>Gameplay:</strong> Slowly shrinks target boundaries
+                  and smoothly moves current boundaries towards targets.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void hitWall(int wallIndex)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Expands a specific wall outward when hit by a bullet. <br /><code
+                >wallIndex</code
+              >: 0=Left, 1=Right, 2=Top, 3=Bottom. <br />Includes checks to
+              prevent expanding beyond screen edges.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              sf::View getClippingView() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns an <code>sf::View</code> that clips rendering to the
+              current window area. Essential for the "window" illusion.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void draw(sf::RenderWindow &window, const sf::Font &font)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Renders the window frame, title bar, buttons, and background.
+            </div>
+          </div>
+
+          <!-- Getters -->
+          <div class="method">
+            <div class="method-name">
+              float getLeft() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns current left boundary X coordinate.
+            </div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              float getRight() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns current right boundary X coordinate.
+            </div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              float getTop() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns current top boundary Y coordinate.
+            </div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              float getBottom() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns current bottom boundary Y coordinate.
+            </div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              float getWidth() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns current window width.</div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              float getHeight() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns current window height.</div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              sf::Vector2f getPosition() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns (Left, Top) as a vector.</div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              sf::Vector2f getSize() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns (Width, Height) as a vector.</div>
+          </div>
+          <div class="method">
+            <div class="method-name">
+              bool isAnimationComplete() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">
+              Returns true if the collapse animation has finished.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYER CLASS -->
+      <div id="Player" class="section">
+        <div class="class-header">
+          <h2>Class: Player</h2>
+          <span class="tag tag-public">Entity</span>
+        </div>
+        <p>Represents the user-controlled character.</p>
+
+        <h3>Input Flow</h3>
+        <div class="mermaid">
+          flowchart LR Input[handleInput] --> Keys{Check Keys} Keys -- W/Up -->
+          MoveUp[y -= speed] Keys -- S/Down --> MoveDown[y += speed] Keys --
+          A/Left --> MoveLeft[x -= speed] Keys -- D/Right --> MoveRight[x +=
+          speed] MoveUp --> Apply[Move Shape] MoveDown --> Apply MoveLeft -->
+          Apply MoveRight --> Apply
+        </div>
+
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              Player(float radius, float speed, float startX, float startY)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Constructor. Sets size, speed, and initial position.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void handleInput() <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Checks keyboard state (WASD/Arrows) and moves the player
+              accordingly.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void constrainToWindow(const FakeWindow &fw)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Clamps player position to stay within
+              <code>FakeWindow</code> boundaries.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              Bullet createBullet(sf::Vector2f targetPos, float bulletSpeed)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Creates and returns a <code>Bullet</code> aimed at
+              <code>targetPos</code>.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void applyUpgrade(int upgradeIndex)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">
+              Applies purchased upgrades (0: Splash, 1: Speed, 2: Multi-shot).
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void draw(sf::RenderWindow &window)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Renders the player circle.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void earnCurrency(int amount)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Adds amount to player's currency.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void takeDamage(int damage)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Reduces health by damage amount.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              bool isDead() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns true if health <= 0.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              sf::Vector2f getPosition() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns current position.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              float getRadius() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns player radius.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENEMY CLASS -->
+      <div id="Enemy" class="section">
+        <div class="class-header">
+          <h2>Class: Enemy</h2>
+          <span class="tag tag-public">Entity</span>
+        </div>
+        <p>Hostile entity that moves in a straight line.</p>
+
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              Enemy(sf::Vector2f position, sf::Vector2f vel, int hp, int
+              currency) <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Constructor.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void update() <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Updates position based on velocity.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void draw(sf::RenderWindow &window)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Renders the enemy shape.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void takeDamage(int damage)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Reduces enemy health.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              bool isDead() const <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns true if health <= 0.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              int getCurrencyDrop() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns currency value of this enemy.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              sf::Vector2f getPosition() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns current position.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              float getRadius() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns enemy radius.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BULLET CLASS -->
+      <div id="Bullet" class="section">
+        <div class="class-header">
+          <h2>Class: Bullet</h2>
+          <span class="tag tag-public">Entity</span>
+        </div>
+        <p>Projectile fired by player.</p>
+
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              Bullet(sf::Vector2f position, sf::Vector2f vel)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Constructor.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void update() <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Updates position based on velocity.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              void draw(sf::RenderWindow &window)
+              <span class="tag tag-public">public</span>
+            </div>
+            <div class="method-desc">Renders the bullet.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              sf::Vector2f getPosition() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns current position.</div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              float getRadius() const
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-const">const</span>
+            </div>
+            <div class="method-desc">Returns bullet radius.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UI RENDERER CLASS -->
+      <div id="UIRenderer" class="section">
+        <div class="class-header">
+          <h2>Class: UIRenderer</h2>
+          <span class="tag tag-public">Utility</span>
+        </div>
+        <p>Static class for handling UI drawing.</p>
+
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              static void drawWelcomeScreen(sf::RenderWindow &window, const
+              sf::Font &font, const FakeWindow &fakeWin)
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-static">static</span>
+            </div>
+            <div class="method-desc">
+              Draws the initial start screen with title and instructions.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              static void drawShopScreen(...)
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-static">static</span>
+            </div>
+            <div class="method-desc">
+              Draws the upgrade shop interface, including cards for each upgrade
+              and current currency.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              static void drawGameOverScreen(...)
+              <span class="tag tag-public">public</span>
+              <span class="tag tag-static">static</span>
+            </div>
+            <div class="method-desc">
+              Draws the game over screen with final statistics.
+            </div>
+          </div>
+
+          <div class="method">
+            <div class="method-name">
+              static void centerText(sf::Text &text, float x, float y)
+              <span class="tag tag-private">private</span>
+              <span class="tag tag-static">static</span>
+            </div>
+            <div class="method-desc">
+              Helper to center a text object's origin and place it at (x,y).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STRUCTS & ENUMS -->
+      <div id="Upgrade" class="section">
+        <div class="class-header">
+          <h2>Struct: Upgrade</h2>
+          <span class="tag tag-public">Data</span>
+        </div>
+        <div class="method-list">
+          <div class="method">
+            <div class="method-name">
+              Upgrade(std::string n, std::string desc, int c, int max = 10)
+            </div>
+            <div class="method-desc">Constructor for upgrade data.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="GameStats" class="section">
+        <div class="class-header">
+          <h2>Struct: GameStats</h2>
+          <span class="tag tag-public">Data</span>
+        </div>
+        <p>
+          Simple data structure to hold session statistics (coins, kills, time,
+          etc).
+        </p>
+      </div>
+
+      <div id="GameState" class="section">
+        <div class="class-header">
+          <h2>Enum: GameState</h2>
+          <span class="tag tag-public">Enum</span>
+        </div>
+        <p>
+          Values: <code>WELCOME</code>, <code>SHOP</code>, <code>PLAYING</code>,
+          <code>GAMEOVER</code>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
