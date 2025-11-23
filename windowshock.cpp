@@ -21,7 +21,7 @@ enum class GameState
 // ============================================================================
 // UPGRADE SYSTEM
 // ============================================================================
-struct YESUpgrade
+struct Upgrade
 {
     std::string name;
     std::string description;
