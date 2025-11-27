@@ -11,7 +11,7 @@ private:
     float moveSpeed;
 
 public:
-    int currency = 0; // Keeping currency for score/legacy reasons if needed
+    int currency = 0; // will use this after
     
     // Leveling System
     int xp = 0;
