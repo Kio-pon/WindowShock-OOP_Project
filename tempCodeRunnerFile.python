@@ -1,0 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
+
+# Fix random seeds for consistency
+np.random.seed(42)
+
+def generate_sphere(radius=1, resolution=15):
+    """Generates the coordinates for a sphere."""
+    u = np.linspace(0, 2 * np.pi, resolution)
+    v = np.linspace(0, np.pi, resolution)
+    x = radius * np.outer(np.cos(u), np.sin(v))
+    y = radius * np.outer(np.sin(u), np.sin(v))
+    z = radius * np.outer(np.ones(np.size(u)), np.cos(v))
+    return x, y, z
+
+def rotate_points(x, y, z, angle):
+    """Rotates sphere points around the y-axis."""
+    c, s = np.cos(angle), np.sin(angle)
+    x_new = x * c + z * s
+    z_new = -x * s + z * c
+    y_new = y
+    return x_new, y_new, z_new
+
+# Setup the figure
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Parameters
+radius = 1.0
+floor_length = 10.0
+frames = 60  # Reduced frames for faster processing
+
+# Generate base sphere
+x_base, y_base, z_base = generate_sphere(radius)
+
+# Add a static floor for reference
+xx, yy = np.meshgrid(np.linspace(-6, 6, 10), np.linspace(-2, 2, 10))
+zz = np.zeros_like(xx)
+ax.plot_wireframe(xx, yy, zz, color='gray', alpha=0.3)
+
+# Container for the plot surface
+surf = [None]
+
+def update(frame):
+    if surf[0] is not None:
+        surf[0].remove()
+        
+    # Move ball from left to right
+    progress = frame / frames
+    distance = progress * floor_length - (floor_length / 2)
+    
+    # Calculate rotation angle
+    angle = -distance / radius
+    
+    # Rotate and translate
+    x_rot, y_rot, z_rot = rotate_points(x_base, y_base, z_base, angle)
+    x_final = x_rot + distance
+    y_final = y_rot
+    z_final = z_rot + radius
+    
+    # Plot sphere with a pattern to see rolling
+    surf[0] = ax.plot_surface(x_final, y_final, z_final, cmap='coolwarm', 
+                             edgecolor='k', linewidth=0.5, alpha=0.9)
+    return surf[0],
+
+# Configure axis
+ax.set_xlim(-6, 6)
+ax.set_ylim(-3, 3)
+ax.set_zlim(0, 5)
+ax.set_xlabel('X')
+ax.set_title('Rolling Ball (Saving to GIF...)')
+
+# Run animation
+ani = animation.FuncAnimation(fig, update, frames=frames, interval=50, blit=False)
+
+# Try to save the animation to ensure it is visible
+try:
+    print("Saving animation to rolling_ball.gif...")
+    ani.save('rolling_ball.gif', writer='pillow', fps=20)
+    print("Saved successfully.")
+except Exception as e:
+    print(f"Could not save GIF: {e}")
+
+plt.show()
