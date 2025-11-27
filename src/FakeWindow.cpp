@@ -80,6 +80,71 @@ void FakeWindow::update(float dt)
         }
         return;
     }
+<<<<<<< HEAD
+=======
+
+    // Gradually shrink the window
+    if (targetRight - targetLeft > minWidth)
+    {
+        targetLeft += collapseSpeed;
+        targetRight -= collapseSpeed;
+    }
+    if (targetBottom - targetTop > minHeight)
+    {
+        targetTop += collapseSpeed;
+        targetBottom -= collapseSpeed;
+    }
+
+    // Smoothly move current walls toward target positions
+    auto moveTowards = [&](float &current, float target)
+    {
+        if (std::abs(current - target) < expandSpeed)
+        {
+            current = target;
+        }
+        else if (current < target)
+        {
+            current += expandSpeed;
+        }
+        else
+        {
+            current -= expandSpeed;
+        }
+    };
+
+    moveTowards(currentLeft, targetLeft);
+    moveTowards(currentRight, targetRight);
+    moveTowards(currentTop, targetTop);
+    moveTowards(currentBottom, targetBottom);
+}
+
+void FakeWindow::hitWall(int wallIndex)
+{
+    if (isAnimating)
+        return;
+
+    float limitBuffer = 50.0f;
+
+    switch (wallIndex)
+    {
+    case 0: // Left wall
+        if (targetLeft > limitBuffer)
+            targetLeft -= expandAmount;
+        break;
+    case 1: // Right wall
+        if (targetRight < screenW - limitBuffer)
+            targetRight += expandAmount;
+        break;
+    case 2: // Top wall
+        if (targetTop > limitBuffer)
+            targetTop -= expandAmount;
+        break;
+    case 3: // Bottom wall
+        if (targetBottom < screenH - limitBuffer)
+            targetBottom += expandAmount;
+        break;
+    }
+>>>>>>> 10429a210025b856e15b58ac6bad7062ef9f51fd
 }
 
 sf::View FakeWindow::getClippingView() const
