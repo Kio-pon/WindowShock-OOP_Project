@@ -40,7 +40,10 @@ public:
     void setRadius(float r);
 
     float getRotation() const;
+
     void setRotation(float angle);
+
+    void setColor(sf::Color col);
 
     void addBarrel(float len, float wid, float off = 0.0f, float ang = 0.0f);
     void clearBarrels();

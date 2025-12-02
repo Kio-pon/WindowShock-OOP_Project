@@ -6,7 +6,10 @@
 class Bullet : public Entity
 {
 public:
-    Bullet(sf::Vector2f position, sf::Vector2f vel);
+    Bullet(sf::Vector2f position, sf::Vector2f vel, int dmg = 10);
+    int getDamage() const { return damage; }
 
+private:
+    int damage;
     // update, draw, getPosition, getRadius handled by Entity
 };

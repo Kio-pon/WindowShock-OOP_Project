@@ -22,12 +22,12 @@ void Player::recalculateStats()
     currentHealthRegen = 0.05f + (statLevels[0] * 0.05f); // HP per frame/tick
     currentBodyDamage = 20.0f + (statLevels[2] * 5.0f);
     
-    currentBulletSpeed = 300.0f + (statLevels[3] * 30.0f);
+    currentBulletSpeed = 800.0f + (statLevels[3] * 50.0f);
     currentBulletPenetration = 5.0f + (statLevels[4] * 5.0f); // Health of bullet
-    currentBulletDamage = 10.0f + (statLevels[5] * 3.0f);
+    currentBulletDamage = 25.0f + (statLevels[5] * 5.0f); // Increased base from 10 to 25
     
     currentReload = 0.5f * std::pow(0.9f, statLevels[6]); // Seconds between shots
-    currentMovementSpeed = 150.0f + (statLevels[7] * 15.0f);
+    currentMovementSpeed = 300.0f + (statLevels[7] * 20.0f);
 }
 
 void Player::handleInput()
@@ -135,7 +135,7 @@ std::vector<Bullet> Player::createBullets(sf::Vector2f targetPos)
         
         sf::Vector2f spawnPos = pos + forward * (b.length) + right * b.offset;
         
-        newBullets.emplace_back(spawnPos, dir * currentBulletSpeed);
+        newBullets.emplace_back(spawnPos, dir * currentBulletSpeed, static_cast<int>(currentBulletDamage));
     }
     
     return newBullets;

@@ -207,18 +207,19 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         centerText(backTxt, pos.x + 70, pos.y + 35);
         window.draw(backTxt);
         
-        // Draw Class Options (Twin, Sniper, MachineGun, FlankGuard)
-        // Simple grid
-        std::vector<std::string> classes = {"Twin", "Sniper", "Machine Gun", "Flank Guard"};
+        // Get available upgrades
+        std::vector<TankType> upgrades = getAvailableUpgrades(player.currentTankType);
+        
+        // Draw Class Options
         float startX = pos.x + 100;
         float startY = pos.y + 150;
         float boxSize = 120;
         float gap = 30;
         
-        for (size_t i = 0; i < classes.size(); i++)
+        for (size_t i = 0; i < upgrades.size(); i++)
         {
-            float x = startX + (i % 2) * (boxSize + gap);
-            float y = startY + (i / 2) * (boxSize + gap);
+            float x = startX + (i % 3) * (boxSize + gap); // 3 per row
+            float y = startY + (i / 3) * (boxSize + gap);
             
             sf::RectangleShape box(sf::Vector2f(boxSize, boxSize));
             box.setPosition(sf::Vector2f(x, y));
@@ -227,15 +228,33 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
             box.setOutlineThickness(2);
             window.draw(box);
             
-            sf::Text name(font, classes[i], 14);
-            name.setFillColor(sf::Color::White);
-            centerText(name, x + boxSize/2, y + boxSize + 15);
-            window.draw(name);
+            // Convert enum to string (simple switch or map)
+            std::string name = "Unknown";
+            switch(upgrades[i]) {
+                case TankType::Twin: name = "Twin"; break;
+                case TankType::Sniper: name = "Sniper"; break;
+                case TankType::MachineGun: name = "Machine Gun"; break;
+                case TankType::FlankGuard: name = "Flank Guard"; break;
+                case TankType::TripleShot: name = "Triple Shot"; break;
+                case TankType::QuadTank: name = "Quad Tank"; break;
+                case TankType::TwinFlank: name = "Twin Flank"; break;
+                case TankType::Assassin: name = "Assassin"; break;
+                case TankType::Overseer: name = "Overseer"; break;
+                case TankType::Hunter: name = "Hunter"; break;
+                case TankType::Trapper: name = "Trapper"; break;
+                case TankType::Destroyer: name = "Destroyer"; break;
+                case TankType::Gunner: name = "Gunner"; break;
+                case TankType::TriAngle: name = "Tri-Angle"; break;
+                case TankType::Auto3: name = "Auto 3"; break;
+                case TankType::Smasher: name = "Smasher"; break;
+                // Add more as needed or use a helper function
+                default: name = "Class " + std::to_string((int)upgrades[i]); break;
+            }
+            
+            sf::Text nameTxt(font, name, 14);
+            nameTxt.setFillColor(sf::Color::White);
+            centerText(nameTxt, x + boxSize/2, y + boxSize + 15);
+            window.draw(nameTxt);
         }
-        
-        sf::Text more(font, "More coming soon...", 16);
-        more.setFillColor(sf::Color(150, 150, 150));
-        centerText(more, pos.x + size.x/2, pos.y + size.y - 50);
-        window.draw(more);
     }
 }

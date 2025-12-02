@@ -1,104 +1,101 @@
 #include "../include/Entity.hpp"
 
 Entity::Entity(sf::Vector2f pos, float r, sf::Color col)
-    : position(pos), radius(r), rotation(0.0f), bodyColor(col)
+    : position(pos), radius(r), bodyColor(col), rotation(0.0f)
 {
-    barrelColor = sf::Color(153, 153, 153); // Standard grey for barrels
+    // Default barrel color is grey
+    barrelColor = sf::Color(153, 153, 153);
 }
 
 void Entity::update(float dt)
 {
     position += velocity * dt;
-
-    // Recover recoil
-    for (auto &b : barrels)
-    {
-        if (b.recoil > 0)
-        {
-            b.recoil -= b.recoilRecovery * dt;
-            if (b.recoil < 0) b.recoil = 0;
-        }
-    }
 }
 
 void Entity::draw(sf::RenderWindow &window)
 {
-    // Draw barrels first (so they are under the body)
+    // Draw Barrels first (so they are under the body)
     for (const auto &b : barrels)
     {
         sf::RectangleShape barrelShape(sf::Vector2f(b.length, b.width));
-        barrelShape.setOrigin(sf::Vector2f(0, b.width / 2.0f)); // Pivot at the base center
+        barrelShape.setOrigin(sf::Vector2f(0.0f, b.width / 2.0f));
         barrelShape.setFillColor(barrelColor);
-        barrelShape.setOutlineColor(sf::Color(85, 85, 85)); // Darker grey outline
         barrelShape.setOutlineThickness(2.0f);
+        barrelShape.setOutlineColor(sf::Color(85, 85, 85)); // Darker grey outline
 
-        // Calculate barrel position based on entity rotation and barrel offset
-        float radAngle = (rotation + b.angle) * 3.14159f / 180.0f;
+        // Calculate position and rotation
+        // Barrel offset is perpendicular to direction
+        float totalAngle = rotation + b.angle;
+        float radAngle = totalAngle * 3.14159f / 180.0f;
         
-        // Apply recoil: move barrel backwards along its angle
-        // Actually, we want to draw the barrel at the entity position, rotated, 
-        // but shifted slightly inwards by recoil.
-        // The barrel is attached to the body.
+        // Recoil logic visualization (simple shortening or moving back)
+        // Let's move the barrel back by recoil amount
+        float recoilOffset = b.recoil;
         
-        // Let's simplify: The barrel is a rectangle. 
-        // Position: Entity center.
-        // Rotation: Entity rotation + Barrel angle.
-        // Offset: Move it 'offset' distance sideways if needed (for twin), 
-        // and 'radius - recoil' distance forwards? No, usually starts inside.
+        // Position: Entity Center + Offset (Right) + Recoil (Back)
+        // We need to rotate these vectors
         
-        // Standard Diep barrel starts at center (or slightly offset) and extends out.
-        // Let's assume 'offset' is lateral offset (like Twin).
-        // And we need a forward offset which is usually radius * 0.8 or something.
+        // Forward vector
+        sf::Vector2f forward(std::cos(radAngle), std::sin(radAngle));
+        // Right vector
+        sf::Vector2f right(-forward.y, forward.x);
         
-        // Correct approach:
-        // 1. Start at Entity Center.
-        // 2. Rotate by (Rotation + BarrelAngle).
-        // 3. Move forward by (Radius - Recoil).
-        // 4. Move laterally by (Offset).
+        sf::Vector2f barrelPos = position + right * b.offset - forward * recoilOffset;
         
-        // Wait, 'offset' in my struct usually means lateral offset for Twin tanks.
-        // Let's use SFML transforms for easier handling.
+        barrelShape.setPosition(barrelPos);
+        barrelShape.setRotation(sf::degrees(totalAngle));
         
-        sf::Transform transform;
-        transform.translate(position);
-        transform.rotate(sf::degrees(rotation + b.angle));
-        
-        // Lateral offset (y-axis in local coords)
-        transform.translate(sf::Vector2f(0, b.offset));
-        
-        // Recoil (x-axis in local coords, negative)
-        transform.translate(sf::Vector2f(-b.recoil, 0));
-        
-        // Draw
-        window.draw(barrelShape, transform);
+        window.draw(barrelShape);
     }
 
-    // Draw body
+    // Draw Body
     sf::CircleShape body(radius);
     body.setOrigin(sf::Vector2f(radius, radius));
     body.setPosition(position);
     body.setFillColor(bodyColor);
-    
-    // Darker outline
-    sf::Color outlineCol = sf::Color(
-        std::max(0, bodyColor.r - 40),
-        std::max(0, bodyColor.g - 40),
-        std::max(0, bodyColor.b - 40)
-    );
-    body.setOutlineColor(outlineCol);
     body.setOutlineThickness(3.0f);
+    body.setOutlineColor(sf::Color(85, 85, 85)); // Darker outline
     
+    // For rotation visualization (optional, maybe not for circle)
+    // body.setRotation(sf::degrees(rotation)); 
+
     window.draw(body);
 }
 
-sf::Vector2f Entity::getPosition() const { return position; }
-void Entity::setPosition(sf::Vector2f pos) { position = pos; }
+sf::Vector2f Entity::getPosition() const
+{
+    return position;
+}
 
-float Entity::getRadius() const { return radius; }
-void Entity::setRadius(float r) { radius = r; }
+void Entity::setPosition(sf::Vector2f pos)
+{
+    position = pos;
+}
 
-float Entity::getRotation() const { return rotation; }
-void Entity::setRotation(float angle) { rotation = angle; }
+float Entity::getRadius() const
+{
+    return radius;
+}
+
+void Entity::setRadius(float r)
+{
+    radius = r;
+}
+
+float Entity::getRotation() const
+{
+    return rotation;
+}
+
+void Entity::setRotation(float angle)
+{
+    rotation = angle;
+}
+
+void Entity::setColor(sf::Color col)
+{
+    bodyColor = col;
+}
 
 void Entity::addBarrel(float len, float wid, float off, float ang)
 {
@@ -108,8 +105,8 @@ void Entity::addBarrel(float len, float wid, float off, float ang)
     b.offset = off;
     b.angle = ang;
     b.recoil = 0.0f;
-    b.maxRecoil = 5.0f; // Default
-    b.recoilRecovery = 20.0f; // Default
+    b.maxRecoil = 0.0f; // Not used yet
+    b.recoilRecovery = 0.0f; // Not used yet
     barrels.push_back(b);
 }
 

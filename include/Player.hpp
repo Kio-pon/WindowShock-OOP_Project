@@ -3,6 +3,7 @@
 #include "Entity.hpp"
 #include "FakeWindow.hpp"
 #include "Bullet.hpp"
+#include "TankClass.hpp"
 
 // The player character controlled by the user
 class Player : public Entity
@@ -12,6 +13,9 @@ private:
 
 public:
     int currency = 0; // will use this after
+    
+    // Current Tank Class
+    TankType currentTankType = TankType::Basic;
     
     // Leveling System
     int xp = 0;
