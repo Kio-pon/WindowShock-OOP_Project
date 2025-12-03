@@ -4,6 +4,9 @@
 #include "FakeWindow.hpp"
 #include "Bullet.hpp"
 #include "TankClass.hpp"
+#include <memory>
+
+class Tank;
 
 // The player character controlled by the user
 class Player : public Entity
@@ -15,7 +18,8 @@ public:
     int currency = 0; // will use this after
     
     // Current Tank Class
-    TankType currentTankType = TankType::Basic;
+    std::shared_ptr<Tank> currentTank;
+    void setTank(std::shared_ptr<Tank> newTank);
     
     // Leveling System
     int xp = 0;

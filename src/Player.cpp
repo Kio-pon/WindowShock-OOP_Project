@@ -10,9 +10,14 @@ Player::Player(float radius, float speed, float startX, float startY)
     recalculateStats();
     currentHealth = currentMaxHealth;
     
-    // Add default barrel (Basic Tank)
-    // Length, Width, Offset, Angle
-    addBarrel(radius * 2.2f, radius * 0.8f, 0.0f, 0.0f);
+    // Set default tank
+    setTank(std::make_shared<BasicTank>());
+}
+
+void Player::setTank(std::shared_ptr<Tank> newTank)
+{
+    currentTank = newTank;
+    currentTank->configure(*this);
 }
 
 void Player::recalculateStats()

@@ -62,7 +62,7 @@ int main()
 
     std::vector<Bullet> bullets;
     std::vector<Bullet> enemyBullets;
-    std::vector<Enemy> enemies;
+    std::vector<std::shared_ptr<Enemy>> enemies;
 
     // Setup timing clocks
     sf::Clock shootClock;
@@ -171,11 +171,12 @@ int main()
                         // Show if level >= 5 and upgrades are available
                         // Also check if level requirement for next tier is met
                         bool canUpgrade = false;
-                        if (!getAvailableUpgrades(player.currentTankType).empty())
+                        auto upgrades = player.currentTank->getUpgrades();
+                        if (!upgrades.empty())
                         {
-                            if (player.level >= 15) canUpgrade = true; // Tier 4
-                            else if (player.level >= 10 && player.currentTankType != TankType::Basic) canUpgrade = true; // Tier 3
-                            else if (player.level >= 5 && player.currentTankType == TankType::Basic) canUpgrade = true; // Tier 2
+                            int currentTier = player.currentTank->getTier();
+                            if (currentTier == 1 && player.level >= 10) canUpgrade = true; // Tier 2 at Lvl 10
+                            else if (currentTier == 2 && player.level >= 20) canUpgrade = true; // Tier 3 at Lvl 20
                         }
 
                         if (canUpgrade)
@@ -197,7 +198,7 @@ int main()
                         }
                         
                         // Class Selection Boxes
-                        std::vector<TankType> upgrades = getAvailableUpgrades(player.currentTankType);
+                        auto upgrades = player.currentTank->getUpgrades();
                         float startX = winPos.x + 100;
                         float startY = winPos.y + 150;
                         float boxSize = 120;
@@ -211,7 +212,7 @@ int main()
                             
                             if (box.contains(mousePosF))
                             {
-                                configureTank(player, upgrades[i]);
+                                player.setTank(upgrades[i]);
                                 upgradeWindow.toggle(); // Close window after selection
                             }
                         }
@@ -353,8 +354,9 @@ int main()
                     y = currentWindow->getTop() + static_cast<float>(rand() % (int)currentWindow->getHeight());
                 }
 
+                sf::Vector2f spawnPos(x, y);
+
                 // Determine Enemy Type
-                EnemyType type = EnemyType::Triangle;
                 int roll = rand() % 100;
                 
                 // Difficulty scaling
@@ -362,55 +364,39 @@ int main()
                 
                 // Boss check
                 bool bossExists = false;
-                for(const auto& e : enemies) if(e.getType() == EnemyType::Spiker) bossExists = true;
+                for(const auto& e : enemies) if(dynamic_cast<Spiker*>(e.get())) bossExists = true;
                 
                 if (time > 60 && !bossExists && (rand() % 20 == 0)) // 5% chance every spawn cycle after 60s
                 {
-                    type = EnemyType::Spiker;
+                    enemies.emplace_back(std::make_shared<Spiker>(spawnPos));
                 }
                 else
                 {
-                    if (roll < 50) type = EnemyType::Triangle;
-                    else if (roll < 75) type = EnemyType::Circle;
-                    else type = EnemyType::Square;
-                }
-
-                int hp = 100;
-                float speed = 100.0f;
-                int currency = 5;
-                
-                switch(type)
-                {
-                    case EnemyType::Triangle: hp = 30; speed = 80.0f; currency = 10; break; // Slower, less HP
-                    case EnemyType::Circle: hp = 20; speed = 150.0f; currency = 15; break; // Slower
-                    case EnemyType::Square: hp = 50; speed = 60.0f; currency = 20; break; // Slower
-                    case EnemyType::Spiker: hp = 1000; speed = 20.0f; currency = 500; break; // Slower boss
+                    if (roll < 50) enemies.emplace_back(std::make_shared<Triangle>(spawnPos));
+                    else if (roll < 75) enemies.emplace_back(std::make_shared<Circle>(spawnPos));
+                    else enemies.emplace_back(std::make_shared<Square>(spawnPos));
                 }
                 
-                // Scale with time (reduced scaling)
-                hp += time / 2;
-
-                enemies.emplace_back(sf::Vector2f(x, y), speed, hp, currency, type);
                 enemySpawnClock.restart();
             }
 
             // Update Enemies
             for (auto it = enemies.begin(); it != enemies.end();)
             {
-                std::vector<Bullet> newEnemyBullets = it->update(player.getPosition(), deltaTime);
+                std::vector<Bullet> newEnemyBullets = (*it)->update(player.getPosition(), deltaTime);
                 enemyBullets.insert(enemyBullets.end(), newEnemyBullets.begin(), newEnemyBullets.end());
                 
                 // Collision with Player
-                sf::Vector2f ePos = it->getPosition();
+                sf::Vector2f ePos = (*it)->getPosition();
                 sf::Vector2f pPos = player.getPosition();
                 float dist = std::sqrt(std::pow(ePos.x - pPos.x, 2) + std::pow(ePos.y - pPos.y, 2));
-                if (dist < player.getRadius() + it->getRadius())
+                if (dist < player.getRadius() + (*it)->getRadius())
                 {
                     player.takeDamage(20);
-                    if (it->getType() == EnemyType::Spiker) player.takeDamage(100); // Boss hurts more
+                    if (dynamic_cast<Spiker*>(it->get())) player.takeDamage(100); // Boss hurts more
                     
                     // Ramming damage to enemy
-                    it->takeDamage(static_cast<int>(player.currentBodyDamage)); 
+                    (*it)->takeDamage(static_cast<int>(player.currentBodyDamage)); 
                 }
 
                 // Collision with Bullets
@@ -419,9 +405,9 @@ int main()
                 {
                     sf::Vector2f bPos = bit->getPosition();
                     float bDist = std::sqrt(std::pow(ePos.x - bPos.x, 2) + std::pow(ePos.y - bPos.y, 2));
-                    if (bDist < it->getRadius() + bit->getRadius())
+                    if (bDist < (*it)->getRadius() + bit->getRadius())
                     {
-                        it->takeDamage(bit->getDamage());
+                        (*it)->takeDamage(bit->getDamage());
                         bit = bullets.erase(bit);
                         bulletHit = true;
                         break;
@@ -432,9 +418,9 @@ int main()
                     }
                 }
 
-                if (it->isDead())
+                if ((*it)->isDead())
                 {
-                    player.earnXp(it->getCurrencyDrop() * 10);
+                    player.earnXp((*it)->getCurrencyDrop() * 10);
                     stats.enemiesKilled++;
                     it = enemies.erase(it);
                 }
@@ -464,7 +450,7 @@ int main()
             window.setView(currentWindow->getClippingView());
 
             for (auto &e : enemies)
-                e.draw(window);
+                e->draw(window);
             for (auto &b : bullets)
                 b.draw(window);
             for (auto &b : enemyBullets)

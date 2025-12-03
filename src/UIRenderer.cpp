@@ -86,7 +86,7 @@ void UIRenderer::drawHUD(sf::RenderWindow &window, const sf::Font &font, const P
     window.draw(lvlText);
     
     // Tank Upgrade Notification
-    if (player.level >= 5) // Simplified check, ideally check if upgrade available
+    if (player.level >= 10 && player.currentTank->getUpgrades().size() > 0 ) // Simplified check, ideally check if upgrade available
     {
         sf::Text upgText(font, "Tank Upgrade Available!", 18);
         upgText.setFillColor(sf::Color::Cyan);
@@ -176,7 +176,7 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         drawStatBar(window, font, {pos.x + 50, startY + gap*7}, "Movement Spd", player.statLevels[7], sf::Color(100, 255, 255), player.skillPoints > 0, mousePos, 7, player);
         
         // Tank Upgrade Button
-        if (player.level >= 5)
+        if (player.level >= 10 && player.currentTank->getTier() < 3) // Simplified check
         {
             sf::RectangleShape btn(sf::Vector2f(200.0f, 40.0f));
             btn.setPosition(sf::Vector2f(pos.x + size.x - 250, pos.y + 50));
@@ -208,7 +208,7 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         window.draw(backTxt);
         
         // Get available upgrades
-        std::vector<TankType> upgrades = getAvailableUpgrades(player.currentTankType);
+        auto upgrades = player.currentTank->getUpgrades();
         
         // Draw Class Options
         float startX = pos.x + 100;
@@ -228,30 +228,13 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
             box.setOutlineThickness(2);
             window.draw(box);
             
-            // Convert enum to string (simple switch or map)
-            std::string name = "Unknown";
-            switch(upgrades[i]) {
-                case TankType::Twin: name = "Twin"; break;
-                case TankType::Sniper: name = "Sniper"; break;
-                case TankType::MachineGun: name = "Machine Gun"; break;
-                case TankType::FlankGuard: name = "Flank Guard"; break;
-                case TankType::TripleShot: name = "Triple Shot"; break;
-                case TankType::QuadTank: name = "Quad Tank"; break;
-                case TankType::TwinFlank: name = "Twin Flank"; break;
-                case TankType::Assassin: name = "Assassin"; break;
-                case TankType::Overseer: name = "Overseer"; break;
-                case TankType::Hunter: name = "Hunter"; break;
-                case TankType::Trapper: name = "Trapper"; break;
-                case TankType::Destroyer: name = "Destroyer"; break;
-                case TankType::Gunner: name = "Gunner"; break;
-                case TankType::TriAngle: name = "Tri-Angle"; break;
-                case TankType::Auto3: name = "Auto 3"; break;
-                case TankType::Smasher: name = "Smasher"; break;
-                // Add more as needed or use a helper function
-                default: name = "Class " + std::to_string((int)upgrades[i]); break;
-            }
+            // Tank Preview
+            // Create a temp player to draw the tank configuration
+            Player tempPlayer(15.0f, 0.0f, x + boxSize/2, y + boxSize/2);
+            upgrades[i]->configure(tempPlayer);
+            tempPlayer.draw(window);
             
-            sf::Text nameTxt(font, name, 14);
+            sf::Text nameTxt(font, upgrades[i]->getName(), 14);
             nameTxt.setFillColor(sf::Color::White);
             centerText(nameTxt, x + boxSize/2, y + boxSize + 15);
             window.draw(nameTxt);
