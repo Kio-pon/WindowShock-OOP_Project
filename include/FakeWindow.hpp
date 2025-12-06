@@ -32,7 +32,6 @@ public:
     void resize(float newSize);
 
     // Start animation to collapse window to smaller size
-    // Made virtual so derived classes can implement specific animations if needed
     virtual void startCollapseAnimation();
 
     // Update window position and size each frame

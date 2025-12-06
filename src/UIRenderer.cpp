@@ -59,7 +59,7 @@ void UIRenderer::drawHUD(sf::RenderWindow &window, const sf::Font &font, const P
     sf::Vector2f winPos = fw.getPosition();
     sf::Vector2f winSize = fw.getSize();
     
-    // XP Bar
+    // Draw XP Bar
     float barWidth = winSize.x * 0.6f;
     float barHeight = 10.0f;
     float barX = winPos.x + (winSize.x - barWidth) / 2.0f;
@@ -77,7 +77,7 @@ void UIRenderer::drawHUD(sf::RenderWindow &window, const sf::Font &font, const P
     
     sf::RectangleShape xpFill(sf::Vector2f(barWidth * xpRatio, barHeight));
     xpFill.setPosition(sf::Vector2f(barX, barY));
-    xpFill.setFillColor(sf::Color(255, 215, 0)); // Gold
+    xpFill.setFillColor(sf::Color(255, 215, 0));
     window.draw(xpFill);
     
     sf::Text lvlText(font, "Lvl " + std::to_string(player.level), 16);
@@ -85,8 +85,8 @@ void UIRenderer::drawHUD(sf::RenderWindow &window, const sf::Font &font, const P
     centerText(lvlText, barX + barWidth / 2.0f, barY - 15.0f);
     window.draw(lvlText);
     
-    // Tank Upgrade Notification
-    if (player.level >= 10 && player.currentTank->getUpgrades().size() > 0 ) // Simplified check, ideally check if upgrade available
+    // Display tank upgrade availability
+    if (player.level >= 10 && player.currentTank->getUpgrades().size() > 0)
     {
         sf::Text upgText(font, "Tank Upgrade Available!", 18);
         upgText.setFillColor(sf::Color::Cyan);
@@ -97,7 +97,7 @@ void UIRenderer::drawHUD(sf::RenderWindow &window, const sf::Font &font, const P
 
 void UIRenderer::drawStatBar(sf::RenderWindow &window, const sf::Font &font, sf::Vector2f pos, std::string label, int level, sf::Color color, bool canUpgrade, sf::Vector2i mousePos, int statIndex, Player &player)
 {
-    // Background
+    // Draw background
     sf::RectangleShape bg(sf::Vector2f(250.0f, 20.0f));
     bg.setPosition(pos);
     bg.setFillColor(sf::Color(30, 30, 30));
@@ -105,39 +105,34 @@ void UIRenderer::drawStatBar(sf::RenderWindow &window, const sf::Font &font, sf:
     bg.setOutlineThickness(1.0f);
     window.draw(bg);
     
-    // Fill
+    // Draw fill level
     float fillWidth = (250.0f / 7.0f) * level;
     sf::RectangleShape fill(sf::Vector2f(fillWidth, 20.0f));
     fill.setPosition(pos);
     fill.setFillColor(color);
     window.draw(fill);
     
-    // Label
+    // Draw label
     sf::Text lbl(font, label, 14);
     lbl.setFillColor(sf::Color::White);
     lbl.setPosition(sf::Vector2f(pos.x + 10, pos.y + 2));
     window.draw(lbl);
     
-    // Plus Button
+    // Draw upgrade button
     if (canUpgrade && level < 7)
     {
         sf::RectangleShape btn(sf::Vector2f(20.0f, 20.0f));
         btn.setPosition(sf::Vector2f(pos.x + 260.0f, pos.y));
         btn.setFillColor(color);
         
-        // Check hover/click
+        // Handle hover effect
         sf::FloatRect btnRect(sf::Vector2f(pos.x + 260.0f, pos.y), sf::Vector2f(20.0f, 20.0f));
         if (btnRect.contains(sf::Vector2f((float)mousePos.x, (float)mousePos.y)))
         {
             btn.setOutlineColor(sf::Color::White);
             btn.setOutlineThickness(2.0f);
             
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-            {
-                // Simple debounce check needed in main, but for now direct call
-                // This might trigger multiple times per frame, main loop should handle events
-                // Here we just draw. Main loop handles logic.
-            }
+            // Interaction logic is handled in valid event loop, visual only here
         }
         
         window.draw(btn);
@@ -164,8 +159,7 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         float startY = pos.y + 100;
         float gap = 35.0f;
         
-        // Draw 8 stats
-        // Colors: Regen(Orange), MaxHP(Pink), BodyDmg(Purple), BulletSpd(Blue), Pen(Yellow), Dmg(Red), Reload(Green), Move(Cyan)
+        // Render 8 stat bars with distinct colors
         drawStatBar(window, font, {pos.x + 50, startY + gap*0}, "Health Regen", player.statLevels[0], sf::Color(255, 150, 100), player.skillPoints > 0, mousePos, 0, player);
         drawStatBar(window, font, {pos.x + 50, startY + gap*1}, "Max Health", player.statLevels[1], sf::Color(255, 100, 255), player.skillPoints > 0, mousePos, 1, player);
         drawStatBar(window, font, {pos.x + 50, startY + gap*2}, "Body Damage", player.statLevels[2], sf::Color(150, 100, 255), player.skillPoints > 0, mousePos, 2, player);
@@ -176,7 +170,7 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         drawStatBar(window, font, {pos.x + 50, startY + gap*7}, "Movement Spd", player.statLevels[7], sf::Color(100, 255, 255), player.skillPoints > 0, mousePos, 7, player);
         
         // Tank Upgrade Button
-        if (player.level >= 10 && player.currentTank->getTier() < 3) // Simplified check
+        if (player.level >= 10 && player.currentTank->getTier() < 3)
         {
             sf::RectangleShape btn(sf::Vector2f(200.0f, 40.0f));
             btn.setPosition(sf::Vector2f(pos.x + size.x - 250, pos.y + 50));
@@ -207,10 +201,9 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         centerText(backTxt, pos.x + 70, pos.y + 35);
         window.draw(backTxt);
         
-        // Get available upgrades
         auto upgrades = player.currentTank->getUpgrades();
         
-        // Draw Class Options
+        // Draw Class Options in grid
         float startX = pos.x + 100;
         float startY = pos.y + 150;
         float boxSize = 120;
@@ -218,18 +211,17 @@ void UIRenderer::drawUpgradeWindow(sf::RenderWindow &window, const sf::Font &fon
         
         for (size_t i = 0; i < upgrades.size(); i++)
         {
-            float x = startX + (i % 3) * (boxSize + gap); // 3 per row
+            float x = startX + (i % 3) * (boxSize + gap);
             float y = startY + (i / 3) * (boxSize + gap);
             
             sf::RectangleShape box(sf::Vector2f(boxSize, boxSize));
             box.setPosition(sf::Vector2f(x, y));
-            box.setFillColor(sf::Color(0, 178, 225)); // Player color
+            box.setFillColor(sf::Color(0, 178, 225));
             box.setOutlineColor(sf::Color::White);
             box.setOutlineThickness(2);
             window.draw(box);
             
-            // Tank Preview
-            // Create a temp player to draw the tank configuration
+            // Preview tank configuration
             Player tempPlayer(15.0f, 0.0f, x + boxSize/2, y + boxSize/2);
             upgrades[i]->configure(tempPlayer);
             tempPlayer.draw(window);

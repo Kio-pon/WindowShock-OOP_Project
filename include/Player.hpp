@@ -63,11 +63,11 @@ public:
     // Override update to handle stats regen, reload, etc.
     void update(float dt) override;
 
-    // Create bullets aimed at target position (supports multiple barrels)
+    // Create bullets aimed at target position
     std::vector<Bullet> createBullets(sf::Vector2f targetPos);
 
     void earnXp(int amount);
-    void earnCurrency(int amount); // Legacy wrapper
+    void earnCurrency(int amount); 
     void takeDamage(int damage);
     bool isDead() const;
 
@@ -80,6 +80,6 @@ public:
     // Get required XP for next level
     int getXpForNextLevel() const;
     
-    // Apply purchased upgrade effects (Legacy - might remove or adapt)
+    // Apply purchased upgrade effects
     void applyUpgrade(int upgradeIndex);
 };

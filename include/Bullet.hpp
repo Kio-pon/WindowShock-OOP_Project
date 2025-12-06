@@ -11,5 +11,4 @@ public:
 
 private:
     int damage;
-    // update, draw, getPosition, getRadius handled by Entity
 };

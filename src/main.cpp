@@ -24,17 +24,17 @@
 
 int main()
 {
-    // Get screen dimensions
+    // Retrieve screen resolution
     int screenWidth = GetSystemMetrics(SM_CXSCREEN);
     int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    // Create fullscreen transparent window
+    // Initialize full-screen transparent window
     sf::VideoMode desktop({static_cast<unsigned int>(screenWidth), static_cast<unsigned int>(screenHeight)});
     sf::RenderWindow window(desktop, "WindowShock", sf::Style::None);
     window.setPosition(sf::Vector2i(0, 0));
     window.setFramerateLimit(60);
 
-    // Make window transparent and always on top
+    // Configure window attributes for transparency and layering
     HWND hwnd = window.getNativeHandle();
     LONG style = GetWindowLong(hwnd, GWL_STYLE);
     SetWindowLong(hwnd, GWL_STYLE, style | WS_VISIBLE);
@@ -44,13 +44,13 @@ int main()
     SetForegroundWindow(hwnd);
     SetFocus(hwnd);
 
-    // Load font
+    // Font loading fallback
     sf::Font font;
     if (!font.openFromFile("C:/Windows/Fonts/arial.ttf"))
         if (!font.openFromFile("C:/Windows/Fonts/calibri.ttf"))
             return -1;
 
-    // Initialize game objects
+    // Game object initialization
     std::unique_ptr<FakeWindow> currentWindow = std::make_unique<WelcomeWindow>(screenWidth, screenHeight, 675.0f);
     
     UpgradeWindow upgradeWindow(screenWidth, screenHeight);
@@ -64,25 +64,22 @@ int main()
     std::vector<Bullet> enemyBullets;
     std::vector<std::shared_ptr<Enemy>> enemies;
 
-    // Setup timing clocks
     sf::Clock shootClock;
     sf::Clock gameTimeClock;
     sf::Clock enemySpawnClock;
     sf::Clock deltaTimeClock;
     
-    // Store default view for UI rendering
     sf::View defaultView = window.getDefaultView();
 
-    // Main game loop
     while (window.isOpen())
     {
         float deltaTime = deltaTimeClock.restart().asSeconds();
 
         sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f mousePosF = static_cast<sf::Vector2f>(mousePixelPos);
-        sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos); // Same as mousePosF for default view
+        sf::Vector2f mouseWorldPos = window.mapPixelToCoords(mousePixelPos);
 
-        // Handle window collapse animation
+        // Animation handling
         if (isTransitioningToPlay)
         {
             currentWindow->update(deltaTime);
@@ -90,7 +87,7 @@ int main()
                 isTransitioningToPlay = false;
         }
 
-        // Process events
+        // Event processing
         while (auto eventOpt = window.pollEvent())
         {
             const sf::Event &event = *eventOpt;
@@ -101,7 +98,7 @@ int main()
             {
                 const auto &keyEvent = event.getIf<sf::Event::KeyPressed>();
                 
-                // Start game
+                // Game start
                 if (keyEvent->code == sf::Keyboard::Key::Space)
                 {
                     if (currentState == GameState::WELCOME || currentState == GameState::GAMEOVER)
@@ -117,7 +114,7 @@ int main()
                         gameTimeClock.restart();
                         enemySpawnClock.restart();
 
-                        // Reset game state
+                        // Reset state
                         player = Player(15.0f, 5.0f, screenWidth / 2.0f, screenHeight / 2.0f);
                         bullets.clear();
                         enemyBullets.clear();
@@ -126,14 +123,14 @@ int main()
                     }
                 }
                 
-                // Toggle upgrade shop window
+                // Toggle upgrade window
                 if (keyEvent->code == sf::Keyboard::Key::Tab)
                 {
                     if (currentState == GameState::PLAYING && !isTransitioningToPlay)
                         upgradeWindow.toggle();
                 }
                 
-                // Exit
+                // Exit application
                 if (keyEvent->code == sf::Keyboard::Key::Escape)
                 {
                     if (upgradeWindow.getVisible())
@@ -147,7 +144,7 @@ int main()
             {
                 const auto &mouseEvent = event.getIf<sf::Event::MouseButtonPressed>();
 
-                // Handle UI Clicks in Upgrade Window
+                // Handle upgrade window interactions
                 if (currentState == GameState::PLAYING && upgradeWindow.getVisible() && mouseEvent->button == sf::Mouse::Button::Left)
                 {
                     sf::Vector2f winPos = upgradeWindow.getPosition();
@@ -155,7 +152,7 @@ int main()
                     
                     if (upgradeWindow.getState() == UpgradeWindowState::Stats)
                     {
-                        // Check Stat Upgrade Buttons
+                        // Handle stat upgrades
                         float startY = winPos.y + 100;
                         float gap = 35.0f;
                         for (int i = 0; i < 8; i++)
@@ -167,16 +164,14 @@ int main()
                             }
                         }
                         
-                        // Check Tank Upgrade Button
-                        // Show if level >= 5 and upgrades are available
-                        // Also check if level requirement for next tier is met
+                        // Handle tank upgrades
                         bool canUpgrade = false;
                         auto upgrades = player.currentTank->getUpgrades();
                         if (!upgrades.empty())
                         {
                             int currentTier = player.currentTank->getTier();
-                            if (currentTier == 1 && player.level >= 10) canUpgrade = true; // Tier 2 at Lvl 10
-                            else if (currentTier == 2 && player.level >= 20) canUpgrade = true; // Tier 3 at Lvl 20
+                            if ((currentTier == 1 && player.level >= 10) || (currentTier == 2 && player.level >= 20))
+                                canUpgrade = true;
                         }
 
                         if (canUpgrade)
@@ -190,14 +185,14 @@ int main()
                     }
                     else if (upgradeWindow.getState() == UpgradeWindowState::ClassSelection)
                     {
-                        // Back Button
+                        // Handle back button
                         sf::FloatRect backBtn(sf::Vector2f(winPos.x + 20, winPos.y + 20), sf::Vector2f(100.0f, 30.0f));
                         if (backBtn.contains(mousePosF))
                         {
                             upgradeWindow.setState(UpgradeWindowState::Stats);
                         }
                         
-                        // Class Selection Boxes
+                        // Handle class selection
                         auto upgrades = player.currentTank->getUpgrades();
                         float startX = winPos.x + 100;
                         float startY = winPos.y + 150;
@@ -213,7 +208,7 @@ int main()
                             if (box.contains(mousePosF))
                             {
                                 player.setTank(upgrades[i]);
-                                upgradeWindow.toggle(); // Close window after selection
+                                upgradeWindow.toggle();
                             }
                         }
                     }
@@ -221,13 +216,13 @@ int main()
             }
         }
 
-        // Update game logic
+        // Core game logic update
         if (currentState == GameState::PLAYING && !isTransitioningToPlay && !upgradeWindow.getVisible())
         {
             stats.timeSurvived = static_cast<int>(gameTimeClock.getElapsedTime().asSeconds());
             currentWindow->update(deltaTime);
             
-            // Update Player Rotation
+            // Player orientation
             sf::Vector2f playerPos = player.getPosition();
             sf::Vector2f dir = mouseWorldPos - playerPos;
             float angle = std::atan2(dir.y, dir.x) * 180.0f / 3.14159f;
@@ -237,7 +232,7 @@ int main()
             player.update(deltaTime);
             player.constrainToWindow(*currentWindow);
 
-            // Shooting
+            // Player shooting
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && player.reloadTimer <= 0.0f)
             {
                 std::vector<Bullet> newBullets = player.createBullets(mouseWorldPos);
@@ -245,68 +240,46 @@ int main()
                 player.reloadTimer = player.currentReload;
             }
 
-            // Update bullets
+            // Update player bullets
             for (auto it = bullets.begin(); it != bullets.end();)
             {
                 it->update(deltaTime);
                 
-                // Check collision with window walls
+                // Wall collisions
                 bool hitWall = false;
                 sf::Vector2f bPos = it->getPosition();
                 
                 PlayingWindow* playingWin = dynamic_cast<PlayingWindow*>(currentWindow.get());
                 if (playingWin)
                 {
-                    if (bPos.x < playingWin->getLeft())
-                    {
-                        playingWin->hitWall(0);
-                        hitWall = true;
-                    }
-                    else if (bPos.x > playingWin->getRight())
-                    {
-                        playingWin->hitWall(1);
-                        hitWall = true;
-                    }
-                    else if (bPos.y < playingWin->getTop())
-                    {
-                        playingWin->hitWall(2);
-                        hitWall = true;
-                    }
-                    else if (bPos.y > playingWin->getBottom())
-                    {
-                        playingWin->hitWall(3);
-                        hitWall = true;
-                    }
+                    if (bPos.x < playingWin->getLeft()) { playingWin->hitWall(0); hitWall = true; }
+                    else if (bPos.x > playingWin->getRight()) { playingWin->hitWall(1); hitWall = true; }
+                    else if (bPos.y < playingWin->getTop()) { playingWin->hitWall(2); hitWall = true; }
+                    else if (bPos.y > playingWin->getBottom()) { playingWin->hitWall(3); hitWall = true; }
                 }
                 
-                if (hitWall)
-                {
-                    it = bullets.erase(it);
-                }
-                else
-                {
-                    ++it;
-                }
+                if (hitWall) it = bullets.erase(it);
+                else ++it;
             }
 
-            // Update Enemy Bullets
+            // Update enemy bullets
             for (auto it = enemyBullets.begin(); it != enemyBullets.end();)
             {
                 it->update(deltaTime);
                 
-                // Collision with Player
+                // Player collision
                 sf::Vector2f bPos = it->getPosition();
                 sf::Vector2f pPos = player.getPosition();
                 float dist = std::sqrt(std::pow(bPos.x - pPos.x, 2) + std::pow(bPos.y - pPos.y, 2));
                 
                 if (dist < player.getRadius() + it->getRadius())
                 {
-                    player.takeDamage(it->getDamage()); // Enemy bullet damage
+                    player.takeDamage(it->getDamage());
                     it = enemyBullets.erase(it);
                     continue;
                 }
 
-                // Wall collision (remove)
+                // Wall collision
                 bool hitWall = false;
                 PlayingWindow* playingWin = dynamic_cast<PlayingWindow*>(currentWindow.get());
                 if (playingWin)
@@ -319,16 +292,14 @@ int main()
                     }
                 }
 
-                if (hitWall)
-                    it = enemyBullets.erase(it);
-                else
-                    ++it;
+                if (hitWall) it = enemyBullets.erase(it);
+                else ++it;
             }
 
-            // Spawn Enemies
+            // Enemy Spawning
             if (enemySpawnClock.getElapsedTime().asSeconds() > 2.0f)
             {
-                // Spawn outside the window
+                // Calculate spawn position outside window
                 float buffer = 50.0f;
                 float x, y;
                 int side = rand() % 4;
@@ -355,18 +326,15 @@ int main()
                 }
 
                 sf::Vector2f spawnPos(x, y);
-
-                // Determine Enemy Type
                 int roll = rand() % 100;
-                
-                // Difficulty scaling
                 int time = stats.timeSurvived; 
                 
-                // Boss check
+                // Check if boss active
                 bool bossExists = false;
                 for(const auto& e : enemies) if(dynamic_cast<Spiker*>(e.get())) bossExists = true;
                 
-                if (time > 60 && !bossExists && (rand() % 20 == 0)) // 5% chance every spawn cycle after 60s
+                // Spawn logic
+                if (time > 60 && !bossExists && (rand() % 20 == 0))
                 {
                     enemies.emplace_back(std::make_shared<Spiker>(spawnPos));
                 }
@@ -380,26 +348,26 @@ int main()
                 enemySpawnClock.restart();
             }
 
-            // Update Enemies
+            // Update enemies
             for (auto it = enemies.begin(); it != enemies.end();)
             {
                 std::vector<Bullet> newEnemyBullets = (*it)->update(player.getPosition(), deltaTime);
                 enemyBullets.insert(enemyBullets.end(), newEnemyBullets.begin(), newEnemyBullets.end());
                 
-                // Collision with Player
+                // Player collision
                 sf::Vector2f ePos = (*it)->getPosition();
                 sf::Vector2f pPos = player.getPosition();
                 float dist = std::sqrt(std::pow(ePos.x - pPos.x, 2) + std::pow(ePos.y - pPos.y, 2));
                 if (dist < player.getRadius() + (*it)->getRadius())
                 {
                     player.takeDamage(20);
-                    if (dynamic_cast<Spiker*>(it->get())) player.takeDamage(100); // Boss hurts more
+                    if (dynamic_cast<Spiker*>(it->get())) player.takeDamage(100);
                     
-                    // Ramming damage to enemy
+                    // Apply body damage to enemy
                     (*it)->takeDamage(static_cast<int>(player.currentBodyDamage)); 
                 }
 
-                // Collision with Bullets
+                // Bullet collision
                 bool bulletHit = false;
                 for (auto bit = bullets.begin(); bit != bullets.end();)
                 {
@@ -437,30 +405,24 @@ int main()
             }
         }
 
-        // Render everything
-        window.clear(sf::Color(255, 0, 255)); // Transparent color key
+        // Render pass
+        window.clear(sf::Color(255, 0, 255)); // Transparent key
 
-        // Draw window frame
         window.setView(defaultView);
         currentWindow->draw(window, font);
 
-        // Draw game entities with clipping
         if (currentState == GameState::PLAYING && !isTransitioningToPlay)
         {
+            // Draw with clipping
             window.setView(currentWindow->getClippingView());
 
-            for (auto &e : enemies)
-                e->draw(window);
-            for (auto &b : bullets)
-                b.draw(window);
-            for (auto &b : enemyBullets)
-                b.draw(window);
+            for (auto &e : enemies) e->draw(window);
+            for (auto &b : bullets) b.draw(window);
+            for (auto &b : enemyBullets) b.draw(window);
             player.draw(window);
 
-            // Switch back to default view for UI
-            window.setView(defaultView);
-
             // Draw HUD
+            window.setView(defaultView);
             UIRenderer::drawHUD(window, font, player, *currentWindow);
         }
         else if (currentState == GameState::WELCOME)
@@ -472,7 +434,6 @@ int main()
             UIRenderer::drawGameOverScreen(window, font, stats, *currentWindow);
         }
 
-        // Draw upgrade window on top of everything if visible
         if (upgradeWindow.getVisible())
         {
             upgradeWindow.draw(window, font);

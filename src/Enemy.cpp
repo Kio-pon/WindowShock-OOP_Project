@@ -2,6 +2,7 @@
 #include <cmath>
 
 // --- Base Enemy ---
+
 Enemy::Enemy(sf::Vector2f position, float speedVal, int hp, int currency)
     : Entity(position, 20.0f, sf::Color::Red), speed(speedVal), health(hp), maxHealth(hp), currencyDrop(currency)
 {
@@ -22,12 +23,13 @@ int Enemy::getCurrencyDrop() const
     return currencyDrop;
 }
 
-// --- Triangle ---
+// --- Triangle Enemy ---
+
 Triangle::Triangle(sf::Vector2f position)
     : Enemy(position, 100.0f, 30, 10)
 {
     setRadius(15.0f);
-    setColor(sf::Color(255, 255, 0)); // Yellow
+    setColor(sf::Color(255, 255, 0));
 }
 
 std::vector<Bullet> Triangle::update(sf::Vector2f playerPos, float dt)
@@ -38,7 +40,7 @@ std::vector<Bullet> Triangle::update(sf::Vector2f playerPos, float dt)
     sf::Vector2f normDir = (len != 0) ? dir / len : sf::Vector2f(0,0);
 
     float currentSpeed = speed;
-    if (len < 150.0f) currentSpeed *= 0.3f; // Slow down when close
+    if (len < 150.0f) currentSpeed *= 0.3f; // Reduce speed at close range
 
     if (len != 0)
     {
@@ -53,12 +55,13 @@ std::vector<Bullet> Triangle::update(sf::Vector2f playerPos, float dt)
     return {};
 }
 
-// --- Circle ---
+// --- Circle Enemy ---
+
 Circle::Circle(sf::Vector2f position)
-    : Enemy(position, 250.0f, 10, 20) // Fast, low HP
+    : Enemy(position, 250.0f, 10, 20)
 {
     setRadius(10.0f);
-    setColor(sf::Color(0, 0, 255)); // Blue
+    setColor(sf::Color(0, 0, 255));
     moveTimer = 1.0f;
 }
 
@@ -100,12 +103,13 @@ std::vector<Bullet> Circle::update(sf::Vector2f playerPos, float dt)
     return {};
 }
 
-// --- Square ---
+// --- Square Enemy ---
+
 Square::Square(sf::Vector2f position)
     : Enemy(position, 200.0f, 50, 15)
 {
     setRadius(18.0f);
-    setColor(sf::Color(0, 255, 0)); // Green
+    setColor(sf::Color(0, 255, 0));
     moveTimer = 2.0f;
 }
 
@@ -116,7 +120,7 @@ std::vector<Bullet> Square::update(sf::Vector2f playerPos, float dt)
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     sf::Vector2f normDir = (len != 0) ? dir / len : sf::Vector2f(0,0);
 
-    if (!isMoving) // Waiting
+    if (!isMoving) // Preparation phase
     {
         moveTimer -= dt;
         float angle = std::atan2(normDir.y, normDir.x) * 180.0f / 3.14159f;
@@ -129,7 +133,7 @@ std::vector<Bullet> Square::update(sf::Vector2f playerPos, float dt)
             dashDirection = normDir;
         }
     }
-    else // Dashing
+    else // Dashing phase
     {
         moveTimer -= dt;
         sf::Vector2f velocity = dashDirection * (speed * 3.0f);
@@ -138,7 +142,7 @@ std::vector<Bullet> Square::update(sf::Vector2f playerPos, float dt)
         if (moveTimer <= 0.0f)
         {
             isMoving = false;
-            moveTimer = 2.0f; // Cooldown
+            moveTimer = 2.0f; // Cooldown duration
         }
     }
 
@@ -147,13 +151,14 @@ std::vector<Bullet> Square::update(sf::Vector2f playerPos, float dt)
 }
 
 // --- Spiker (Boss) ---
+
 Spiker::Spiker(sf::Vector2f position)
     : Enemy(position, 30.0f, 500, 500)
 {
     setRadius(50.0f);
-    setColor(sf::Color(50, 50, 50)); // Dark Grey
+    setColor(sf::Color(50, 50, 50));
     
-    // 8 barrels
+    // Configure multi-barrel setup
     for(int i=0; i<8; ++i)
     {
         addBarrel(50.0f, 15.0f, 0.0f, i * 45.0f);
@@ -169,18 +174,18 @@ std::vector<Bullet> Spiker::update(sf::Vector2f playerPos, float dt)
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     sf::Vector2f normDir = (len != 0) ? dir / len : sf::Vector2f(0,0);
 
-    // Move slowly
+    // Movement logic
     if (len != 0)
     {
         sf::Vector2f velocity = normDir * speed;
         setPosition(pos + velocity * dt);
         
-        // Rotate slowly
+        // Constant rotation
         float currentRot = getRotation();
         setRotation(currentRot + 30.0f * dt);
     }
     
-    // Shooting
+    // Shooting logic
     if (reloadTimer > 0.0f)
     {
         reloadTimer -= dt;

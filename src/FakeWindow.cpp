@@ -48,7 +48,6 @@ void FakeWindow::startCollapseAnimation()
 
 void FakeWindow::update(float dt)
 {
-    // Handle smooth animation
     if (isAnimating)
     {
         animationProgress += dt / animationDuration;
@@ -63,7 +62,7 @@ void FakeWindow::update(float dt)
         }
         else
         {
-            // Smooth easing function
+            // Apply cubic easing
             float t = 1.0f - std::pow(1.0f - animationProgress, 3.0f);
 
             currentLeft = animStartRect.position.x + (animTargetRect.position.x - animStartRect.position.x) * t;
@@ -91,7 +90,7 @@ sf::View FakeWindow::getClippingView() const
     view.setCenter({currentLeft + w / 2.0f, currentTop + h / 2.0f});
     view.setSize({w, h});
 
-    // Set viewport to match window position on screen
+    // Map viewport to screen coordinates
     float vpX = currentLeft / screenW;
     float vpY = currentTop / screenH;
     float vpW = w / screenW;
@@ -121,19 +120,19 @@ void FakeWindow::draw(sf::RenderWindow &window, const sf::Font &font)
     float x = currentLeft;
     float y = currentTop - titleBarHeight;
 
-    // Draw title bar
+    // Title bar
     sf::RectangleShape titleBar(sf::Vector2f(w, titleBarHeight));
     titleBar.setPosition(sf::Vector2f(x, y));
     titleBar.setFillColor(sf::Color(45, 45, 48));
     window.draw(titleBar);
 
-    // Draw title text
+    // Title text
     sf::Text titleText(font, "WindowShock Game", 14);
     titleText.setFillColor(sf::Color::White);
     titleText.setPosition(sf::Vector2f(x + 10, y + 7));
     window.draw(titleText);
 
-    // Draw window control buttons
+    // Window controls
     float buttonSize = 12.0f;
     float buttonY = y + titleBarHeight / 2.0f - buttonSize / 2.0f;
 
@@ -145,17 +144,17 @@ void FakeWindow::draw(sf::RenderWindow &window, const sf::Font &font)
         window.draw(btn);
     };
 
-    drawBtn(15, sf::Color(255, 95, 86));   // Close button
-    drawBtn(35, sf::Color(40, 201, 64));   // Maximize button
-    drawBtn(55, sf::Color(255, 189, 46));  // Minimize button
+    drawBtn(15, sf::Color(255, 95, 86));   // Close
+    drawBtn(35, sf::Color(40, 201, 64));   // Maximize
+    drawBtn(55, sf::Color(255, 189, 46));  // Minimize
 
-    // Draw black game area
+    // Game area background
     sf::RectangleShape gameArea(sf::Vector2f(w, h));
     gameArea.setPosition(sf::Vector2f(currentLeft, currentTop));
     gameArea.setFillColor(sf::Color::Black);
     window.draw(gameArea);
 
-    // Draw window border
+    // Window border
     sf::RectangleShape border(sf::Vector2f(w, h + titleBarHeight));
     border.setPosition(sf::Vector2f(x, y));
     border.setFillColor(sf::Color::Transparent);

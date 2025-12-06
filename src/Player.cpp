@@ -3,14 +3,11 @@
 #include <iostream>
 
 Player::Player(float radius, float speed, float startX, float startY)
-    : Entity(sf::Vector2f(startX, startY), radius, sf::Color(0, 178, 225)), // Diep.io Blue
+    : Entity(sf::Vector2f(startX, startY), radius, sf::Color(0, 178, 225)),
       moveSpeed(speed)
 {
-    // Initialize stats
     recalculateStats();
     currentHealth = currentMaxHealth;
-    
-    // Set default tank
     setTank(std::make_shared<BasicTank>());
 }
 
@@ -22,16 +19,16 @@ void Player::setTank(std::shared_ptr<Tank> newTank)
 
 void Player::recalculateStats()
 {
-    // Base stats + Multipliers based on levels
+    // Initialize stats with base values and level multipliers
     currentMaxHealth = 100.0f + (statLevels[1] * 20.0f);
-    currentHealthRegen = 0.05f + (statLevels[0] * 0.05f); // HP per frame/tick
+    currentHealthRegen = 0.05f + (statLevels[0] * 0.05f);
     currentBodyDamage = 20.0f + (statLevels[2] * 5.0f);
     
     currentBulletSpeed = 800.0f + (statLevels[3] * 50.0f);
-    currentBulletPenetration = 5.0f + (statLevels[4] * 5.0f); // Health of bullet
-    currentBulletDamage = 25.0f + (statLevels[5] * 5.0f); // Increased base from 10 to 25
+    currentBulletPenetration = 5.0f + (statLevels[4] * 5.0f);
+    currentBulletDamage = 25.0f + (statLevels[5] * 5.0f);
     
-    currentReload = 0.5f * std::pow(0.9f, statLevels[6]); // Seconds between shots
+    currentReload = 0.5f * std::pow(0.9f, statLevels[6]);
     currentMovementSpeed = 300.0f + (statLevels[7] * 20.0f);
 }
 
@@ -51,17 +48,16 @@ void Player::handleInput()
 
 void Player::update(float dt)
 {
-    // Base entity update (position + recoil recovery)
     Entity::update(dt);
     
-    // Regen health
+    // Regenerate health
     if (currentHealth < currentMaxHealth)
     {
-        currentHealth += currentHealthRegen; // Should scale with DT, but keeping simple for now
+        currentHealth += currentHealthRegen;
         if (currentHealth > currentMaxHealth) currentHealth = currentMaxHealth;
     }
     
-    // Reload timer
+    // Update reload timer
     if (reloadTimer > 0.0f)
     {
         reloadTimer -= dt;
@@ -85,8 +81,6 @@ std::vector<Bullet> Player::createBullets(sf::Vector2f targetPos)
 {
     std::vector<Bullet> newBullets;
     
-    // Only shoot if reload is ready (checked in main, but good to know)
-    
     sf::Vector2f pos = getPosition();
     sf::Vector2f dirToMouse = targetPos - pos;
     float len = std::sqrt(dirToMouse.x * dirToMouse.x + dirToMouse.y * dirToMouse.y);
@@ -101,42 +95,17 @@ std::vector<Bullet> Player::createBullets(sf::Vector2f targetPos)
     {
         const auto& b = barrels[i];
         
-        // Apply recoil
         applyRecoil(i, 5.0f);
         
-        // Calculate bullet spawn position and direction
-        // Barrel angle is relative to player rotation (which is baseAngle)
+        // Calculate total rotation angle for the barrel
         float totalAngle = baseAngle + b.angle;
         float radAngle = totalAngle * 3.14159f / 180.0f;
         
         sf::Vector2f dir(std::cos(radAngle), std::sin(radAngle));
         
-        // Spawn position:
-        // Start at center
-        // Move forward by (Radius * 0.8 + BarrelLength) ? No, usually barrel length is visual.
-        // Let's say tip is at: Center + Rotate(Offset_Lateral) + Rotate(Length_Forward)
-        
-        // Actually, using the transform logic from draw:
-        // 1. Rotate by totalAngle
-        // 2. Translate (0, b.offset) -> This is lateral in local space
-        // 3. Translate (b.length, 0) -> This is forward to tip
-        
-        // We need to manually calculate this vector addition
-        
-        // Forward vector (along barrel angle)
+        // Calculate bullet spawn position at barrel tip
         sf::Vector2f forward = dir;
-        
-        // Right vector (perpendicular)
-        sf::Vector2f right(-forward.y, forward.x); // (-sin, cos) is +90 deg rotation?
-        // If forward is (1,0) [0 deg], right should be (0,1) [90 deg].
-        // (-0, 1) -> Correct.
-        
-        // Position = Center + Forward * (Radius * 0.8 + Length) + Right * Offset
-        // Adjust "Radius * 0.8" to match where barrel visually starts.
-        // In draw, we just draw it.
-        // Let's approximate: Tip is at Center + Forward * (b.length) + Right * b.offset
-        // But b.length is the length of the rect.
-        // And we usually want it to spawn at the tip.
+        sf::Vector2f right(-forward.y, forward.x);
         
         sf::Vector2f spawnPos = pos + forward * (b.length) + right * b.offset;
         
@@ -158,20 +127,18 @@ void Player::earnXp(int amount)
         level++;
         skillPoints++;
         req = getXpForNextLevel();
-        // Notify level up? handled by checking level in main
     }
 }
 
 int Player::getXpForNextLevel() const
 {
-    // Simple curve
     return 100 * level; 
 }
 
 void Player::earnCurrency(int amount)
 {
     currency += amount;
-    earnXp(amount * 10); // Convert currency/score to XP
+    earnXp(amount * 10);
 }
 
 void Player::takeDamage(int damage)
@@ -199,12 +166,8 @@ void Player::upgradeStat(int statIndex)
 
 void Player::applyUpgrade(int upgradeIndex)
 {
-    // Legacy support or map to new stats
-    // 0: Splash -> maybe Bullet Damage?
-    // 1: Speed -> Movement Speed
-    // 2: Multi Shot -> maybe Reload?
-    
-    if (upgradeIndex == 0) upgradeStat(5); // Dmg
+    // Map upgrades to specific stats
+    if (upgradeIndex == 0) upgradeStat(5); // Damage
     else if (upgradeIndex == 1) upgradeStat(7); // Speed
     else if (upgradeIndex == 2) upgradeStat(6); // Reload
 }

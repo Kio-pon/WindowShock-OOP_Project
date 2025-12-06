@@ -151,7 +151,7 @@ std::vector<std::shared_ptr<Tank>> Hunter::getUpgrades() { return {}; }
 void Trapper::configure(Player& player) {
     player.clearBarrels();
     float r = player.getRadius();
-    player.addBarrel(r * 1.5f, r * 1.2f, 0.0f, 0.0f); // Short wide barrel
+    player.addBarrel(r * 1.5f, r * 1.2f, 0.0f, 0.0f);
 }
 
 std::vector<std::shared_ptr<Tank>> Trapper::getUpgrades() { return {}; }
@@ -202,7 +202,7 @@ std::vector<std::shared_ptr<Tank>> Auto3::getUpgrades() { return {}; }
 // Smasher
 void Smasher::configure(Player& player) {
     player.clearBarrels();
-    // No barrels
+    // No barrels for Smasher
 }
 
 std::vector<std::shared_ptr<Tank>> Smasher::getUpgrades() { return {}; }

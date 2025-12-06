@@ -7,14 +7,14 @@ PlayingWindow::PlayingWindow(int sw, int sh, float initialSize)
 
 void PlayingWindow::update(float dt)
 {
-    // Call base update for animation handling
+    // Base update handles initial animation
     FakeWindow::update(dt);
 
     if (isAnimating)
         return;
 
-    // Gradually shrink the window
-    float shrinkAmount = 10.0f * dt; // 10 pixels per second per side
+    // Apply continuous shrinking
+    float shrinkAmount = 10.0f * dt;
     if (targetRight - targetLeft > minWidth)
     {
         targetLeft += shrinkAmount;
@@ -26,7 +26,7 @@ void PlayingWindow::update(float dt)
         targetBottom -= shrinkAmount;
     }
 
-    // Smoothly move current walls toward target positions
+    // Interpolate wall positions
     auto moveTowards = [&](float &current, float target)
     {
         if (std::abs(current - target) < expandSpeed)
@@ -58,19 +58,19 @@ void PlayingWindow::hitWall(int wallIndex)
 
     switch (wallIndex)
     {
-    case 0: // Left wall
+    case 0: // Left
         if (targetLeft > limitBuffer)
             targetLeft -= expandAmount;
         break;
-    case 1: // Right wall
+    case 1: // Right
         if (targetRight < screenW - limitBuffer)
             targetRight += expandAmount;
         break;
-    case 2: // Top wall
+    case 2: // Top
         if (targetTop > limitBuffer)
             targetTop -= expandAmount;
         break;
-    case 3: // Bottom wall
+    case 3: // Bottom
         if (targetBottom < screenH - limitBuffer)
             targetBottom += expandAmount;
         break;

@@ -3,7 +3,6 @@
 Entity::Entity(sf::Vector2f pos, float r, sf::Color col)
     : position(pos), radius(r), bodyColor(col), rotation(0.0f)
 {
-    // Default barrel color is grey
     barrelColor = sf::Color(153, 153, 153);
 }
 
@@ -14,30 +13,24 @@ void Entity::update(float dt)
 
 void Entity::draw(sf::RenderWindow &window)
 {
-    // Draw Barrels first (so they are under the body)
+    // Draw barrels first to layer them beneath the body
     for (const auto &b : barrels)
     {
         sf::RectangleShape barrelShape(sf::Vector2f(b.length, b.width));
         barrelShape.setOrigin(sf::Vector2f(0.0f, b.width / 2.0f));
         barrelShape.setFillColor(barrelColor);
         barrelShape.setOutlineThickness(2.0f);
-        barrelShape.setOutlineColor(sf::Color(85, 85, 85)); // Darker grey outline
+        barrelShape.setOutlineColor(sf::Color(85, 85, 85));
 
-        // Calculate position and rotation
-        // Barrel offset is perpendicular to direction
+        // Calculate barrel transform
         float totalAngle = rotation + b.angle;
         float radAngle = totalAngle * 3.14159f / 180.0f;
         
-        // Recoil logic visualization (simple shortening or moving back)
-        // Let's move the barrel back by recoil amount
+        // Apply recoil offset
         float recoilOffset = b.recoil;
         
-        // Position: Entity Center + Offset (Right) + Recoil (Back)
-        // We need to rotate these vectors
-        
-        // Forward vector
+        // Compute barrel position using local coordinate axes
         sf::Vector2f forward(std::cos(radAngle), std::sin(radAngle));
-        // Right vector
         sf::Vector2f right(-forward.y, forward.x);
         
         sf::Vector2f barrelPos = position + right * b.offset - forward * recoilOffset;
@@ -48,17 +41,14 @@ void Entity::draw(sf::RenderWindow &window)
         window.draw(barrelShape);
     }
 
-    // Draw Body
+    // Draw body
     sf::CircleShape body(radius);
     body.setOrigin(sf::Vector2f(radius, radius));
     body.setPosition(position);
     body.setFillColor(bodyColor);
     body.setOutlineThickness(3.0f);
-    body.setOutlineColor(sf::Color(85, 85, 85)); // Darker outline
+    body.setOutlineColor(sf::Color(85, 85, 85));
     
-    // For rotation visualization (optional, maybe not for circle)
-    // body.setRotation(sf::degrees(rotation)); 
-
     window.draw(body);
 }
 
@@ -105,8 +95,8 @@ void Entity::addBarrel(float len, float wid, float off, float ang)
     b.offset = off;
     b.angle = ang;
     b.recoil = 0.0f;
-    b.maxRecoil = 0.0f; // Not used yet
-    b.recoilRecovery = 0.0f; // Not used yet
+    b.maxRecoil = 0.0f;
+    b.recoilRecovery = 0.0f;
     barrels.push_back(b);
 }
 

@@ -18,7 +18,7 @@ void UpgradeWindow::toggle()
     visible = !visible;
     if (visible)
     {
-        state = UpgradeWindowState::Stats; // Reset to stats on open
+        state = UpgradeWindowState::Stats; // Reset view on open
     }
 }
 
@@ -56,19 +56,18 @@ void UpgradeWindow::draw(sf::RenderWindow &window, const sf::Font &font)
     float x = winLeft;
     float y = winTop - titleBarHeight;
 
-    // Draw title bar
+    // Title bar
     sf::RectangleShape titleBar(sf::Vector2f(windowWidth, titleBarHeight));
     titleBar.setPosition(sf::Vector2f(x, y));
     titleBar.setFillColor(sf::Color(45, 45, 48));
     window.draw(titleBar);
 
-    // Draw title text
     sf::Text titleText(font, "Upgrade Shop", 14);
     titleText.setFillColor(sf::Color::White);
     titleText.setPosition(sf::Vector2f(x + 10, y + 7));
     window.draw(titleText);
 
-    // Draw window control buttons
+    // Controls
     float buttonSize = 12.0f;
     float buttonY = y + titleBarHeight / 2.0f - buttonSize / 2.0f;
 
@@ -80,17 +79,17 @@ void UpgradeWindow::draw(sf::RenderWindow &window, const sf::Font &font)
         window.draw(btn);
     };
 
-    drawBtn(15, sf::Color(255, 95, 86));   // Close button
-    drawBtn(35, sf::Color(40, 201, 64));   // Maximize button
-    drawBtn(55, sf::Color(255, 189, 46));  // Minimize button
+    drawBtn(15, sf::Color(255, 95, 86));   // Close
+    drawBtn(35, sf::Color(40, 201, 64));   // Maximize
+    drawBtn(55, sf::Color(255, 189, 46));  // Minimize
 
-    // Draw window background
+    // Background
     sf::RectangleShape background(sf::Vector2f(windowWidth, windowHeight));
     background.setPosition(sf::Vector2f(winLeft, winTop));
     background.setFillColor(sf::Color(20, 20, 25));
     window.draw(background);
 
-    // Draw window border
+    // Border
     sf::RectangleShape border(sf::Vector2f(windowWidth, windowHeight + titleBarHeight));
     border.setPosition(sf::Vector2f(x, y));
     border.setFillColor(sf::Color::Transparent);
